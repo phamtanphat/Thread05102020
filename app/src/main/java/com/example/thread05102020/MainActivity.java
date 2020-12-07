@@ -8,19 +8,35 @@ import android.util.Log;
 public class MainActivity extends AppCompatActivity {
 
     int a , b , c;
+    MyFlag mMyFlag;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         a = b = c = 0;
+        mMyFlag = new MyFlag(0);
 
         Thread threadA = new Thread(new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i <= 10 ; i++) {
-                    a = i;
-                    Log.d("BBB","A : " + i);
+                synchronized (mMyFlag){
+                    for (int i = 0; i <= 10 ; ) {
+                        if (mMyFlag.index == 0){
+                            a = i;
+                            Log.d("BBB","A : " + i);
+                            i++;
+                            mMyFlag.index = 1;
+                            mMyFlag.notifyAll();
+                        }else{
+                            try {
+                                mMyFlag.wait();
+                            }catch (Exception e){
+
+                            }
+                        }
+
+                    }
                 }
             }
         });
@@ -28,9 +44,23 @@ public class MainActivity extends AppCompatActivity {
         Thread threadB = new Thread(new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i <= 10 ; i++) {
-                    b = i;
-                    Log.d("BBB","B : " + i);
+                synchronized (mMyFlag){
+                    for (int i = 0; i <= 10 ;) {
+                        if (mMyFlag.index == 1){
+                            b = i;
+                            Log.d("BBB","B : " + i);
+                            i++;
+                            mMyFlag.index = 2;
+                            mMyFlag.notifyAll();
+                        }else{
+                            try {
+                                mMyFlag.wait();
+                            }catch (Exception e){
+
+                            }
+                        }
+
+                    }
                 }
             }
         });
@@ -38,9 +68,23 @@ public class MainActivity extends AppCompatActivity {
         Thread threadC = new Thread(new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i <= 10 ; i++) {
-                    c = a + b;
-                    Log.d("BBB","C : " + c);
+                synchronized (mMyFlag){
+                    for (int i = 0; i <= 10 ; ) {
+                        if (mMyFlag.index == 2){
+                            c = a + b;
+                            Log.d("BBB","C : " + c);
+                            i++;
+                            mMyFlag.index = 0;
+                            mMyFlag.notifyAll();
+                        }else{
+                            try {
+                                mMyFlag.wait();
+                            }catch (Exception e){
+
+                            }
+                        }
+
+                    }
                 }
             }
         });
